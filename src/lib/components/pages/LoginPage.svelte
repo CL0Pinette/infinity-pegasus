@@ -16,7 +16,6 @@
     async function doLogin()
     {
         toggle();
-
         window.location.href = PEGASUS_AUTH_URL;
     }
 

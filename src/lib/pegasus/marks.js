@@ -1,7 +1,8 @@
 import { progress } from '../stores';
 
 import { computeAverages, normalizeCoefficients } from './coefficients';
-import { getDocuments, MARKS_DOCUMENT, REPORT_DOCUMENT } from './documents';
+import { parseTable, parseSemester, parseYear, sortModules } from './marks_parser';
+import { getDocuments, getTable, MARKS_DOCUMENT, REPORT_DOCUMENT } from './documents';
 
 // Supports :
 // - 'ID - Module name [X ECTS]'
@@ -12,47 +13,66 @@ const MODULE_REGEX = /(((.*) - )|(\[(.*)] )|(([A-Z1-9]+)[_ ]))? ?(.*) \[ *(.*) E
 const MARK_REGEX = /\d+,\d\d/g;
 const POSITION_THRESHOLD = 5;
 
-export async function getMarksFilters()
-{
+async function getMarksTable(semester) {
+    const table = await getTable();
+
+    const marks = parseTable(table[0].innerHTML, semester["PARAM_produit"]);
+
+    return marks;
+}
+
+export async function getMarksFilters() {
     // S[1-3] reports PDFs sucks A LOT, can't be parsed, and takes a ton of time to fetch, so I filter them out.
-    const documents = await getDocuments();
-    const [year, semester] = await documents.find(d => d.name === MARKS_DOCUMENT).fetchFilters();
-    semester.values = semester.values.filter(v => !v.name.includes('Prépa'));
-    year.values = year.values.filter(v => semester.values.find(vv => vv.year === v.value));
+    const table = await getTable(); // .then(d => d.fetchFilters());
 
-    return [year, semester];
+    const years = await parseYear(table[0].innerHTML);
+
+    const semesters = parseSemester(table[0].innerHTML);
+
+    return [years, semesters] //getFilters(semesters);
+
+
+
+    // semester.values = semester.values.filter(v => !v.name.includes('Prépa'));
+    // year.values = year.values.filter(v => semester.values.find(vv => vv.year === v.value));
+
+    // return [year, semester];
 }
 
-export async function getMarks(filters, noReport)
-{
-    const blob = await fetchMarksPDF(filters, !noReport);
+export async function getMarks(filters, noReport) {
+    const marks = await getMarksTable(filters);
 
-    progress.set(`Lecture du ${noReport ? 'relevé': 'bulletin'}`);
+    let markssorted = sortModules(marks, filters["PARAM_produit"]);
 
-    const pdfjs = window['pdfjs-dist/build/pdf'];
-    pdfjs.GlobalWorkerOptions.workerSrc = 'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/2.11.338/pdf.worker.min.js';
+    return markssorted;
 
-    const doc = await pdfjs.getDocument({ url: URL.createObjectURL(blob) }).promise;
-    const result = [];
-    let averages;
+    // const blob = await fetchMarksPDF(filters, !noReport);
 
-    for (let i = 1; i <= doc.numPages; i++) {
-        if (!(averages = await parsePage(await doc.getPage(i), result, !noReport)) && !noReport) {
-            return getMarks(filters, true);
-        }
-    }
+    // progress.set(`Lecture du ${noReport ? 'relevé': 'bulletin'}`);
 
-    if (noReport) {
-        averages = computeAverages(filters, result);
-    }
+    // const pdfjs = window['pdfjs-dist/build/pdf'];
+    // pdfjs.GlobalWorkerOptions.workerSrc = 'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/2.11.338/pdf.worker.min.js';
 
-    normalizeCoefficients(result);
+    // const doc = await pdfjs.getDocument({ url: URL.createObjectURL(blob) }).promise;
+    // const result = [];
+    // let averages;
 
-    return { ...averages, fromReport: !noReport, marks: result };
+    // for (let i = 1; i <= doc.numPages; i++) {
+    //     if (!(averages = await parsePage(await doc.getPage(i), result, !noReport)) && !noReport) {
+    //         return getMarks(filters, true);
+    //     }
+    // }
+
+    // if (noReport) {
+    //     averages = computeAverages(filters, markssorted.marks);
+    // }
+
+    // normalizeCoefficients(markssorted.marks);
+
+    // return { ...averages, fromReport: !noReport, marks: markssorted.marks };
 }
 
-async function fetchMarksPDF(filters, report)
-{
+async function fetchMarksPDF(filters, report) {
     const documents = await getDocuments();
     const marks = documents.find(d => d.name === (report ? REPORT_DOCUMENT : MARKS_DOCUMENT));
 
@@ -60,8 +80,7 @@ async function fetchMarksPDF(filters, report)
     return marks.fetchBlob(filters);
 }
 
-async function parsePage(page, result, report)
-{
+async function parsePage(page, result, report) {
     const content = await page.getTextContent();
     const elements = content.items.filter(i => !i.hasEOL).sort((a, b) => {
         const dy = a.transform[6] - b.transform[6];
@@ -89,7 +108,7 @@ async function parsePage(page, result, report)
         }
 
         while (i < texts.length && texts[i].match(MODULE_REGEX)) {
-            const [,,, id,, idBrackets,, idAlone, name, credits] = texts[i++].match(MODULE_REGEX);
+            const [, , , id, , idBrackets, , idAlone, name, credits] = texts[i++].match(MODULE_REGEX);
             const subjects = [];
             let grade, average, classAverage;
 
@@ -114,8 +133,7 @@ async function parsePage(page, result, report)
     return { average, classAverage };
 }
 
-function parseSubject(elements, texts, i, report)
-{
+function parseSubject(elements, texts, i, report) {
     const name = texts[i++];
     const id = texts[i++];
     let grade, average, classAverage, coefficient;
@@ -165,12 +183,10 @@ function parseSubject(elements, texts, i, report)
     return [{ name, id, grade, average, classAverage, coefficient, marks }, i];
 }
 
-function parseMark(mark)
-{
+function parseMark(mark) {
     return parseFloat(mark.replace(',', '.'));
 }
 
-function isMarkCode(code)
-{
+function isMarkCode(code) {
     return code.match(/^[A-Z]+$/) && code.length > 5;
 }

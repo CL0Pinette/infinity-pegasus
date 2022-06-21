@@ -1,6 +1,6 @@
 {
   "manifest_version": 2,
-  "name": "Infinity Pegasus",
+  "name": "Infinity Pegasus - Prepa",
   "version": "1.0.1",
   "description": "Make Pegasus great again!",
   "homepage_url": "https://github.com/Litarvan/infinity-pegasus",
@@ -8,14 +8,14 @@
     "128": "icon_128.png"
   },
   "browser_action": {
-    "default_title": "Infinity Pegasus",
+    "default_title": "Infinity Pegasus - Prepa",
     "default_icon": "enabled.svg"
   },
   "permissions": [
     "storage",
     "webRequest",
     "webRequestBlocking",
-    "*://inge-etud.epita.net/*"
+    "*://prepa-epita.helvetius.net/*"
   ],
   "background": {
     "scripts": ["background.js"]

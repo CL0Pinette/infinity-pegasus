@@ -1,6 +1,6 @@
 // TODO: We could maybe merge this with firefox background.js
 
-const PEGASUS_FILTER = '*://inge-etud.epita.net/*';
+const PEGASUS_FILTER = '*://prepa-epita.helvetius.net/*';
 
 const ENABLED_ICON = {
     48: 'enabled_48.png',

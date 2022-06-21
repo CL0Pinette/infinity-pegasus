@@ -8,6 +8,7 @@
     "serve": "vite preview"
   },
   "dependencies": {
+    "node-html-parser": "^5.3.3",
     "normalizecss": "^3.0.0",
     "pdfjs-dist": "=2.11.338"
   },

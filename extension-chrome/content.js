@@ -1,9 +1,9 @@
 // This method actually sucks, original page is first loaded and displayed before being replaced by ours.
 // Since Chrome never implemented webRequest.filterResponseData (that we use on firefox), there is sadly no better way (as far as I know).
 
-const DEBUG = false;
+const DEBUG = true;
 
-const INFINITY_PEGASUS_URL = DEBUG ? 'http://localhost:5000/' : 'https://api.pegasus.infinity.study/';
+const INFINITY_PEGASUS_URL = DEBUG ? 'http://localhost:5001/' : 'https://api.pegasus.infinity.study/';
 
 async function init()
 {

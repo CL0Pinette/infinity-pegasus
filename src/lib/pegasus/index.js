@@ -1,6 +1,6 @@
 const pegasusContent = window.pegasus || document.querySelector('#pegasus-original-content').innerText;
 
-const PEGASUS_ROOT = `https://inge-etud.epita.net/pegasus`;
+const PEGASUS_ROOT = `https://prepa-epita.helvetius.net/pegasus/`;
 export const PEGASUS_AUTH_URL = `${PEGASUS_ROOT}/o365Auth.php`;
 
 export function getMatch(pattern, group, modifier)

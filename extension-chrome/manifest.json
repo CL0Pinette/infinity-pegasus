@@ -20,13 +20,13 @@
     "storage"
   ],
   "host_permissions": [
-    "*://inge-etud.epita.net/*"
+    "*://prepa-epita.helvetius.net/*"
   ],
   "background": {
     "service_worker": "service_worker.js"
   },
   "content_scripts": [{
-    "matches": ["*://inge-etud.epita.net/*"],
+    "matches": ["*://prepa-epita.helvetius.net/*"],
     "js": ["content.js"]
   }]
 }

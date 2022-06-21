@@ -1,6 +1,6 @@
-const DEBUG = false;
+const DEBUG = true;
 
-const PEGASUS_HOST = 'inge-etud.epita.net';
+const PEGASUS_HOST = 'prepa-epita.helvetius.net';
 const PEGASUS_URL = `https://${PEGASUS_HOST}/`;
 const PEGASUS_FILTER = `*://${PEGASUS_HOST}/*`;
 const PEGASUS_ROOT = PEGASUS_URL + 'pegasus/';

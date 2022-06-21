@@ -7,7 +7,7 @@
     import { modal, progress } from '/lib/stores';
     import { getMarks, getMarksFilters } from '/lib/pegasus/marks';
     import { getUpdates } from '/lib/pegasus/updates';
-    import { downloadDocument, MARKS_DOCUMENT, REPORT_DOCUMENT, YEAR_FILTER, SEMESTER_FILTER } from '/lib/pegasus/documents';
+    import { downloadDocument, checkDocuments, REPORT_DOCUMENT_PREPA, MARKS_DOCUMENT, REPORT_DOCUMENT, YEAR_FILTER, SEMESTER_FILTER } from '/lib/pegasus/documents';
     import swapper from '/lib/ui/swapper';
 
     import ComboBox from '../ComboBox.svelte';
@@ -52,8 +52,9 @@ Si le problème persiste, merci d'<a class="link colored" href="${app.repository
     async function load()
     {
         filters = await getMarksFilters();
+        console.log(filters);
         filtersValues = {
-            ...Object.fromEntries(filters.map(f => [f.id, (f.id === SEMESTER_FILTER ? (f.values.find(v => v.name.includes('STAGE')) || f.values.at(-2)) : f.values.at(-1)).value])), // TODO: ...
+            ...Object.fromEntries(filters.map(f => [f.id, f.values.value])), // TODO: ...
             ...JSON.parse(localStorage.filters || '{}')
         };
 
@@ -62,7 +63,7 @@ Si le problème persiste, merci d'<a class="link colored" href="${app.repository
 
     async function updateMarks()
     {
-        const result = await getMarks(filtersValues);
+        const result = await getMarks(filtersValues); 
         marks = result.marks;
         averages = {
             'Moyenne générale': result.average,
@@ -71,9 +72,11 @@ Si le problème persiste, merci d'<a class="link colored" href="${app.repository
 
         updates = await getUpdates(filtersValues, marks);
         documents = [
-            MARKS_DOCUMENT,
+            window.location.href.includes("inge-etud.epita.net") ?  MARKS_DOCUMENT : checkDocuments(REPORT_DOCUMENT_PREPA,filters) ? REPORT_DOCUMENT_PREPA : "",
             ...(result.fromReport ? [REPORT_DOCUMENT] : [])
         ];
+
+
 
         if (marks.every(m => m.subjects.every(s => s.marks.every(m => m.value === undefined))) && !marks.every(m => m.subjects.every(s => s.marks.length === 0))) {
             setTimeout(() => modal.set({
@@ -190,7 +193,7 @@ Sinon, il arrive que Pegasus ne retourne pas de note. Dans ce cas-là réessayez
         <div class="content" transition:fade={{ duration: 150, easing: quadIn }} on:outroend={outro}>
             <div class="filters">
                 {#each filters as { name, id, values }}
-                    <!-- Sucks a bit, but well... -->
+                <!-- Sucks a bit, but well... -->
                     {@const choices = values.filter(v => id !== SEMESTER_FILTER || v.year === filtersValues[YEAR_FILTER])}
                     <ComboBox {name} values={choices} value={filtersValues[id]} on:update={e => updateFilter(id, e.detail.value)} />
                 {/each}

@@ -2,9 +2,15 @@ import { SEMESTER_FILTER, YEAR_FILTER } from '../documents';
 
 const S7_2023 = Symbol('S7 (2023)');
 const S6_2024 = Symbol('S6 (2024)');
+const S1_2026 = Symbol('S1 (2026)');
+const S2_2026 = Symbol('S2 (2026)');
+
 
 const coefficients = {
-    [S6_2024]: (await import('./s6_2024')).default
+    [S6_2024]: (await import('./s6_2024')).default,
+    [S1_2026]: (await import('./s1_2026')).default,
+    [S2_2026]: (await import('./s2_2026')).default
+
 };
 
 export function computeAverages(filters, marks)
